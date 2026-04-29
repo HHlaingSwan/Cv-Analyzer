@@ -7,62 +7,64 @@ import {
   Brain,
   CheckCircle2,
   ArrowRight,
+  Sparkles,
 } from "lucide-react";
 
 const steps = [
   {
-    icon: <Upload className="h-8 w-8" />,
+    icon: <Upload className="h-6 w-6" />,
     title: "Upload CV",
     description:
       "Drag & drop or select your CV file. We support PDF, DOCX, and TXT formats.",
-    color: "from-blue-500 to-cyan-500",
+    color: "bg-blue-500",
+    gradient: "from-blue-500 to-cyan-500",
   },
   {
-    icon: <FileText className="h-8 w-8" />,
+    icon: <FileText className="h-6 w-6" />,
     title: "Add Job Details",
     description:
       "Enter the job title, position, description, and key responsibilities for comparison.",
-    color: "from-purple-500 to-pink-500",
+    color: "bg-purple-500",
+    gradient: "from-purple-500 to-pink-500",
   },
   {
-    icon: <Brain className="h-8 w-8" />,
+    icon: <Brain className="h-6 w-6" />,
     title: "AI Analysis",
     description:
       "Our AI automatically compares your CV against the job requirements and generates insights.",
-    color: "from-orange-500 to-red-500",
+    color: "bg-orange-500",
+    gradient: "from-orange-500 to-red-500",
   },
   {
-    icon: <CheckCircle2 className="h-8 w-8" />,
+    icon: <CheckCircle2 className="h-6 w-6" />,
     title: "Get Feedback",
     description:
       "Receive a structured report with actionable insights, skill gaps, and optimization tips.",
-    color: "from-green-500 to-emerald-500",
+    color: "bg-green-500",
+    gradient: "from-green-500 to-emerald-500",
   },
 ];
 
 export function HowItWorks() {
   return (
-    <section className="py-24 bg-linear-to-b from-slate-50 to-white dark:from-slate-900/50 dark:to-slate-950">
+    <section className="py-24 bg-slate-50 dark:bg-slate-900/50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
-        <div className="text-center mb-20 space-y-4">
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 dark:bg-primary/20 border border-primary/20 text-primary text-sm font-semibold mb-4">
+        <div className="text-center mb-16 space-y-4">
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 dark:bg-primary/20 border border-primary/20 text-primary text-sm font-semibold">
+            <Sparkles className="h-4 w-4" />
             Simple Process
           </div>
-          <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-foreground dark:text-white">
-            How It
-            <span className="bg-linear-to-r from-primary to-blue-600 bg-clip-text text-transparent">
-              {" "}
-              Works
-            </span>
+          <h2 className="text-4xl sm:text-5xl font-bold text-foreground dark:text-white">
+            How It Works
           </h2>
-          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
             Get started in minutes with our simple 4-step process
           </p>
         </div>
 
         {/* Steps */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           {steps.map((step, index) => (
             <StepCard key={index} {...step} index={index} />
           ))}
@@ -85,52 +87,46 @@ function StepCard({
   title,
   description,
   color,
+  gradient,
   index,
 }: {
   icon: React.ReactNode;
   title: string;
   description: string;
   color: string;
+  gradient: string;
   index: number;
 }) {
   return (
-    <div className="group relative">
-      {/* Card */}
-      <div className="relative bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-8 h-full hover:shadow-2xl hover:shadow-slate-950/10 dark:hover:shadow-slate-950/30 transition-all duration-500 hover:-translate-y-2 overflow-hidden">
-        {/* Gradient Background on Hover */}
-        <div
-          className={`absolute inset-0 bg-linear-to-br ${color} opacity-0 group-hover:opacity-5 transition-opacity duration-500`}
-        ></div>
+    <div className="relative group">
+      {/* Connector Line */}
+      {index < 3 && (
+        <div className="hidden lg:block absolute top-8 left-full w-full h-0.5 bg-linear-to-r from-slate-200 to-transparent dark:from-slate-700 dark:to-transparent" />
+      )}
 
-        {/* Step Number */}
-        <div
-          className={`absolute top-6 right-6 text-6xl font-black bg-linear-to-br ${color} bg-clip-text text-transparent opacity-10`}
-        >
+      {/* Card */}
+      <div className="relative bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 hover:shadow-xl hover:shadow-slate-950/10 dark:hover:shadow-slate-950/30 transition-all duration-300 hover:-translate-y-1">
+        {/* Step Number Badge */}
+        <div className="absolute -top-3 -left-3 h-8 w-8 rounded-full bg-linear-to-br from-primary to-blue-600 flex items-center justify-center text-white text-sm font-bold shadow-lg">
           {index + 1}
         </div>
 
-        {/* Content */}
-        <div className="relative z-10">
-          {/* Icon */}
-          <div
-            className={`h-16 w-16 rounded-2xl bg-linear-to-br ${color} flex items-center justify-center text-white mb-6 group-hover:scale-110 group-hover:rotate-3 transition-all duration-500 shadow-lg`}
-          >
-            {icon}
-          </div>
-
-          {/* Title */}
-          <h3 className="text-2xl font-bold text-foreground dark:text-white mb-3 group-hover:text-primary transition-colors">
-            {title}
-          </h3>
-
-          {/* Description */}
-          <p className="text-muted-foreground leading-relaxed">{description}</p>
+        {/* Icon */}
+        <div
+          className={`h-12 w-12 rounded-xl ${color} flex items-center justify-center text-white mb-4 group-hover:scale-110 transition-transform duration-300`}
+        >
+          {icon}
         </div>
 
-        {/* Arrow Indicator */}
-        <div className="absolute bottom-6 right-6 h-8 w-8 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-500 group-hover:translate-x-0 translate-x-2">
-          <ArrowRight className="h-4 w-4 text-primary" />
-        </div>
+        {/* Title */}
+        <h3 className="text-lg font-bold text-foreground dark:text-white mb-2">
+          {title}
+        </h3>
+
+        {/* Description */}
+        <p className="text-sm text-muted-foreground leading-relaxed">
+          {description}
+        </p>
       </div>
     </div>
   );

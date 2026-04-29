@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { ArrowRight, Sparkles, FileText, Brain } from "lucide-react";
 import Link from "next/link";
 
@@ -9,6 +9,9 @@ interface HeroSectionProps {
 }
 
 export function HeroSection({ userType }: HeroSectionProps) {
+  const [isAnimating, setIsAnimating] = useState(false);
+  const [displayContent, setDisplayContent] = useState(userType);
+
   const content = {
     recruiter: {
       headline: "Find the Perfect Candidate with AI-Powered CV Analysis",
@@ -26,7 +29,17 @@ export function HeroSection({ userType }: HeroSectionProps) {
     },
   };
 
-  const current = content[userType];
+  useEffect(() => {
+    if (userType !== displayContent) {
+      setIsAnimating(true);
+      setTimeout(() => {
+        setDisplayContent(userType);
+        setIsAnimating(false);
+      }, 300);
+    }
+  }, [userType, displayContent]);
+
+  const current = content[displayContent];
 
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-linear-to-br from-slate-50 via-white to-slate-100 dark:from-slate-950 dark:via-slate-900 dark:to-slate-800">
@@ -45,25 +58,49 @@ export function HeroSection({ userType }: HeroSectionProps) {
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
         <div className="text-center space-y-8">
           {/* Badge */}
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 dark:bg-primary/20 border border-primary/20 text-primary text-sm font-semibold animate-in fade-in slide-in-from-bottom-4 duration-700">
+          <div
+            className={`inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 dark:bg-primary/20 border border-primary/20 text-primary text-sm font-semibold transition-all duration-300 ${
+              isAnimating
+                ? "opacity-0 translate-y-2"
+                : "opacity-100 translate-y-0"
+            }`}
+          >
             <Sparkles className="h-4 w-4" />
             AI-Powered CV Analysis
           </div>
 
           {/* Headline */}
-          <h1 className="text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-black tracking-tight leading-[1.1] animate-in fade-in slide-in-from-bottom-4 duration-700 delay-100">
+          <h1
+            className={`text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-black tracking-tight leading-[1.1] transition-all duration-300 ${
+              isAnimating
+                ? "opacity-0 translate-y-2"
+                : "opacity-100 translate-y-0"
+            }`}
+          >
             <span className="text-foreground dark:text-white">
               {current.headline}
             </span>
           </h1>
 
           {/* Subheadline */}
-          <p className="text-lg sm:text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed animate-in fade-in slide-in-from-bottom-4 duration-700 delay-200">
+          <p
+            className={`text-lg sm:text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed transition-all duration-300 ${
+              isAnimating
+                ? "opacity-0 translate-y-2"
+                : "opacity-100 translate-y-0"
+            }`}
+          >
             {current.subheadline}
           </p>
 
           {/* CTAs */}
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 animate-in fade-in slide-in-from-bottom-4 duration-700 delay-300">
+          <div
+            className={`flex flex-col sm:flex-row items-center justify-center gap-4 transition-all duration-300 ${
+              isAnimating
+                ? "opacity-0 translate-y-2"
+                : "opacity-100 translate-y-0"
+            }`}
+          >
             <Link
               href="/login"
               className="w-full sm:w-auto bg-primary hover:bg-primary/90 text-primary-foreground h-12 px-8 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all hover:scale-[1.02] active:scale-[0.98] shadow-lg shadow-primary/25"

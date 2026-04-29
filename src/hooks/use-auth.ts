@@ -1,11 +1,11 @@
-import { useEffect } from 'react';
-import { useAuthStore } from '@/store/auth-store';
+import { useEffect } from "react";
+import { useAuthStore } from "@/store/auth-store";
 
 export function useAuth() {
   const {
     user,
     session,
-    loading,
+    isLoading,
     error,
     isAuthenticated,
     initialize,
@@ -13,21 +13,37 @@ export function useAuth() {
     signup,
     logout,
     signInWithOAuth,
+    signInWithMagicLink,
+    verifyOtp,
+    reset,
   } = useAuthStore();
 
   useEffect(() => {
-    initialize();
+    let unsubscribe: (() => void) | undefined;
+
+    initialize().then((cleanup) => {
+      unsubscribe = cleanup;
+    });
+
+    return () => {
+      if (unsubscribe) {
+        unsubscribe();
+      }
+    };
   }, [initialize]);
 
   return {
     user,
     session,
-    loading,
+    isLoading,
     error,
     isAuthenticated,
     login,
     signup,
     logout,
     signInWithOAuth,
+    signInWithMagicLink,
+    verifyOtp,
+    reset,
   };
 }

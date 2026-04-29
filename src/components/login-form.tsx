@@ -1,8 +1,9 @@
 "use client";
 
 import React from "react";
-import { useRouter } from "next/navigation";
+import toast from "react-hot-toast";
 import { useAuth } from "@/hooks/use-auth";
+import { OtpVerification } from "@/components/otp-verification";
 import {
   Loader2,
   ArrowRight,
@@ -11,16 +12,29 @@ import {
   BarChart3,
   TrendingUp,
   Sparkles,
+  Eye,
+  EyeOff,
 } from "lucide-react";
 
 export function LoginForm() {
-  const router = useRouter();
-  const { login, signup, signInWithOAuth, loading, error, isAuthenticated } =
-    useAuth();
-  const [mode, setMode] = React.useState<"login" | "signup">("login");
+  const [mode, setMode] = React.useState<"login" | "signup" | "magiclink">(
+    "login",
+  );
+  const [showOtp, setShowOtp] = React.useState(false);
+  const [otpEmail, setOtpEmail] = React.useState("");
+  const [showPassword, setShowPassword] = React.useState(false);
+  const {
+    login,
+    signup,
+    signInWithOAuth,
+    signInWithMagicLink,
+    verifyOtp,
+    isLoading,
+  } = useAuth();
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
+
     const formData = new FormData(event.currentTarget);
     const email = formData.get("email") as string;
     const password = formData.get("password") as string;
@@ -28,22 +42,38 @@ export function LoginForm() {
     try {
       if (mode === "signup") {
         await signup(email, password);
+        setShowOtp(true);
+        setOtpEmail(email);
+        toast.success(
+          "OTP sent to your email. Please enter the code to verify.",
+        );
+      } else if (mode === "magiclink") {
+        await signInWithMagicLink(email);
+        toast.success(
+          "Magic link sent to your email. Click the link to sign in.",
+        );
       } else {
         await login(email, password);
+        toast.success("Login successful!");
+        window.location.href = "/";
       }
-      if (isAuthenticated) {
-        router.push("/");
-      }
-    } catch (err) {
-      // Error is handled by the store
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : "Authentication failed",
+      );
     }
   }
+
+  const handleOtpSuccess = () => {
+    toast.success("Account verified successfully!");
+    window.location.href = "/";
+  };
 
   async function handleOAuth() {
     try {
       await signInWithOAuth("google");
-    } catch (err) {
-      // Error is handled by the store
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "OAuth failed");
     }
   }
 
@@ -110,116 +140,164 @@ export function LoginForm() {
         <div className="w-full lg:w-1/2 max-w-md">
           <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border border-slate-200/50 dark:border-slate-700/50 rounded-3xl p-8 sm:p-10 shadow-2xl shadow-slate-950/10 dark:shadow-slate-950/40">
             <div className="space-y-8">
-              <div className="space-y-2 text-center sm:text-left">
-                <h2 className="text-2xl sm:text-3xl font-bold text-foreground dark:text-white">
-                  {mode === "login" ? "Welcome back" : "Create account"}
-                </h2>
-                <p className="text-muted-foreground">
-                  {mode === "login"
-                    ? "Sign in to access your CV analyzer dashboard"
-                    : "Start analyzing CVs in minutes"}
-                </p>
-              </div>
-
-              <form onSubmit={handleSubmit} className="space-y-5">
-                <div className="space-y-4">
-                  <div className="space-y-2">
-                    <label
-                      htmlFor="email"
-                      className="text-sm font-medium text-foreground/80 dark:text-slate-300"
+              {showOtp ? (
+                <OtpVerification
+                  email={otpEmail}
+                  onSuccess={handleOtpSuccess}
+                />
+              ) : (
+                <>
+                  {/* Tabs */}
+                  <div className="flex justify-around items-center gap-2 p-1 bg-slate-100 dark:bg-slate-800 rounded-xl">
+                    <button
+                      type="button"
+                      onClick={() => setMode("login")}
+                      className={`flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-all ${
+                        mode === "login"
+                          ? "bg-white dark:bg-slate-700 text-foreground dark:text-white shadow-sm"
+                          : "text-muted-foreground hover:text-foreground dark:hover:text-white"
+                      }`}
                     >
-                      Email address
-                    </label>
-                    <input
-                      id="email"
-                      name="email"
-                      type="email"
-                      placeholder="name@company.com"
-                      required
-                      className="w-full bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all placeholder:text-slate-400 dark:placeholder:text-slate-500"
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <label
-                      htmlFor="password"
-                      className="text-sm font-medium text-foreground/80 dark:text-slate-300"
+                      Login
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setMode("signup")}
+                      className={`flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-all ${
+                        mode === "signup"
+                          ? "bg-white dark:bg-slate-700 text-foreground dark:text-white shadow-sm"
+                          : "text-muted-foreground hover:text-foreground dark:hover:text-white"
+                      }`}
                     >
-                      Password
-                    </label>
-                    <input
-                      id="password"
-                      name="password"
-                      type="password"
-                      placeholder="••••••••"
-                      required
-                      className="w-full bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all placeholder:text-slate-400 dark:placeholder:text-slate-500"
-                    />
+                      Sign Up
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setMode("magiclink")}
+                      className={`flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-all ${
+                        mode === "magiclink"
+                          ? "bg-white dark:bg-slate-700 text-foreground dark:text-white shadow-sm"
+                          : "text-muted-foreground hover:text-foreground dark:hover:text-white"
+                      }`}
+                    >
+                      Magic Link
+                    </button>
                   </div>
-                </div>
 
-                {error && (
-                  <div className="text-sm text-destructive bg-destructive/10 p-4 rounded-xl border border-destructive/20 animate-in fade-in zoom-in-95">
-                    {error}
+                  <div className="space-y-2 text-center sm:text-left">
+                    <h2 className="text-2xl sm:text-3xl font-bold text-foreground dark:text-white">
+                      {mode === "login"
+                        ? "Welcome back"
+                        : mode === "signup"
+                          ? "Create account"
+                          : "Magic Link Login"}
+                    </h2>
+                    <p className="text-muted-foreground">
+                      {mode === "login"
+                        ? "Sign in to access your Review Cv dashboard"
+                        : mode === "signup"
+                          ? "Start analyzing CVs in minutes"
+                          : "Sign in with a magic link sent to your email"}
+                    </p>
                   </div>
-                )}
 
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="w-full bg-primary hover:bg-primary/90 text-primary-foreground h-12 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {loading ? (
-                    <Loader2 className="h-5 w-5 animate-spin" />
-                  ) : (
-                    <>
-                      <span>
-                        {mode === "login" ? "Sign In" : "Create Account"}
+                  <form onSubmit={handleSubmit} className="space-y-5">
+                    <div className="space-y-4">
+                      <div className="space-y-2">
+                        <label
+                          htmlFor="email"
+                          className="text-sm font-medium text-foreground/80 dark:text-slate-300"
+                        >
+                          Email address
+                        </label>
+                        <input
+                          id="email"
+                          name="email"
+                          type="email"
+                          placeholder="name@company.com"
+                          required
+                          className="w-full bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all placeholder:text-slate-400 dark:placeholder:text-slate-500"
+                        />
+                      </div>
+
+                      {mode !== "magiclink" && (
+                        <div className="space-y-2">
+                          <label
+                            htmlFor="password"
+                            className="text-sm font-medium text-foreground/80 dark:text-slate-300"
+                          >
+                            Password
+                          </label>
+                          <div className="relative">
+                            <input
+                              id="password"
+                              name="password"
+                              type={showPassword ? "text" : "password"}
+                              placeholder="••••••••"
+                              required
+                              className="w-full bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all placeholder:text-slate-400 dark:placeholder:text-slate-500 pr-10"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => setShowPassword(!showPassword)}
+                              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-foreground dark:hover:text-white transition-colors"
+                            >
+                              {showPassword ? (
+                                <EyeOff className="h-5 w-5" />
+                              ) : (
+                                <Eye className="h-5 w-5" />
+                              )}
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    <button
+                      type="submit"
+                      disabled={isLoading}
+                      className="w-full bg-primary hover:bg-primary/90 text-primary-foreground h-12 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {isLoading ? (
+                        <Loader2 className="h-5 w-5 animate-spin" />
+                      ) : (
+                        <>
+                          <span>
+                            {mode === "login" ? "Sign In" : "Create Account"}
+                          </span>
+                          <ArrowRight className="h-4 w-4" />
+                        </>
+                      )}
+                    </button>
+                  </form>
+
+                  {/* Divider */}
+                  <div className="relative">
+                    <div className="absolute inset-0 flex items-center">
+                      <div className="w-full border-t border-slate-200 dark:border-slate-700"></div>
+                    </div>
+                    <div className="relative flex justify-center text-sm">
+                      <span className="bg-white dark:bg-slate-900 px-4 text-muted-foreground">
+                        or continue with
                       </span>
-                      <ArrowRight className="h-4 w-4" />
-                    </>
-                  )}
-                </button>
-              </form>
-
-              {/* Divider */}
-              <div className="relative">
-                <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-slate-200 dark:border-slate-700"></div>
-                </div>
-                <div className="relative flex justify-center text-sm">
-                  <span className="bg-white dark:bg-slate-900 px-4 text-muted-foreground">
-                    or continue with
-                  </span>
-                </div>
-              </div>
-
-              {/* Social Buttons */}
-              <div className="flex justify-center w-full gap-3">
-                <button
-                  onClick={handleOAuth}
-                  disabled={loading}
-                  className="w-full flex items-center justify-center gap-2 p-3 border rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  <div className="w-5 h-5">
-                    <GoogleIcon />
+                    </div>
                   </div>
-                  <span>Continue with Google</span>
-                </button>
-              </div>
 
-              {/* Toggle Mode */}
-              <p className="text-center text-sm text-muted-foreground">
-                {mode === "login"
-                  ? "Don't have an account?"
-                  : "Already have an account?"}{" "}
-                <button
-                  onClick={() => setMode(mode === "login" ? "signup" : "login")}
-                  className="font-semibold text-primary hover:underline"
-                >
-                  {mode === "login" ? "Sign up" : "Sign in"}
-                </button>
-              </p>
+                  {/* Social Buttons */}
+                  <div className="flex justify-center w-full gap-3">
+                    <button
+                      onClick={handleOAuth}
+                      disabled={isLoading}
+                      className="w-full flex items-center justify-center gap-2 p-3 border rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      <div className="w-5 h-5">
+                        <GoogleIcon />
+                      </div>
+                      <span>Continue with Google</span>
+                    </button>
+                  </div>
+                </>
+              )}
             </div>
           </div>
 
@@ -261,28 +339,6 @@ function FeatureCard({
         {description}
       </p>
     </div>
-  );
-}
-
-function SocialButton({
-  onClick,
-  icon,
-  label,
-}: {
-  onClick: () => void;
-  icon: React.ReactNode;
-  label?: string;
-}) {
-  return (
-    <button
-      onClick={onClick}
-      className="flex items-center justify-center gap-2 bg-slate-50 dark:bg-slate-800/50 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 transition-all hover:scale-[1.02] active:scale-[0.98] group"
-    >
-      <div className="h-5 w-5">{icon}</div>
-      <span className="text-sm font-medium text-muted-foreground group-hover:text-foreground dark:group-hover:text-white transition-colors hidden sm:inline">
-        {label}
-      </span>
-    </button>
   );
 }
 
