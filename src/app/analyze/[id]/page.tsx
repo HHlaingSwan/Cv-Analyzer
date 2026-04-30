@@ -7,7 +7,6 @@ import { AnalysisResult } from "@/lib/ai/openrouter";
 import {
   ArrowLeft,
   Trash2,
-  Download,
   Share2,
   TrendingUp,
   TrendingDown,
@@ -18,7 +17,6 @@ import {
   Menu,
   Save,
   X,
-  FileText,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import { useAuth } from "@/hooks/use-auth";
@@ -35,32 +33,7 @@ export default function AnalysisDetailPage() {
   const [loading, setLoading] = useState(true);
   const [result, setResult] = useState<AnalysisResult | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
-  const [numPages, setNumPages] = useState<number>(0);
   const [pdfError, setPdfError] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (!isLoading && !isAuthenticated) {
-      router.push("/login");
-    }
-  }, [isAuthenticated, isLoading, router]);
-
-  useEffect(() => {
-    if (isAuthenticated) {
-      loadAnalysis();
-    }
-  }, [params.id, isAuthenticated]);
-
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary" />
-      </div>
-    );
-  }
-
-  if (!isAuthenticated) {
-    return null;
-  }
 
   const loadAnalysis = async () => {
     try {
@@ -77,6 +50,18 @@ export default function AnalysisDetailPage() {
     }
   };
 
+  useEffect(() => {
+    if (!isLoading && !isAuthenticated) {
+      router.push("/login");
+    }
+  }, [isAuthenticated, isLoading, router]);
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      loadAnalysis();
+    }
+  }, [params.id, isAuthenticated]);
+
   const handleDelete = async () => {
     if (!confirm("Are you sure you want to delete this analysis?")) return;
 
@@ -91,8 +76,7 @@ export default function AnalysisDetailPage() {
     }
   };
 
-  const onDocumentLoadSuccess = ({ numPages }: { numPages: number }) => {
-    setNumPages(numPages);
+  const onDocumentLoadSuccess = () => {
     setPdfError(null);
   };
 

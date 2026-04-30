@@ -55,6 +55,34 @@ export async function analyzeCV(formData: FormData) {
       throw new Error("Missing required fields");
     }
 
+    // Check daily usage limit (5 analyses per day)
+    const today = new Date().toISOString().split("T")[0];
+    const { data: usageLog, error: usageError } = await supabase
+      .from("usage_logs")
+      .select("analysis_count")
+      .eq("user_id", user.id)
+      .eq("date", today)
+      .single();
+
+    const currentCount = usageLog?.analysis_count || 0;
+    if (currentCount >= 5) {
+      throw new Error(
+        "Daily limit reached: You can analyze up to 5 CVs per day. Try again tomorrow.",
+      );
+    }
+
+    // Check history storage limit (10 analyses max)
+    const { count: historyCount, error: countError } = await supabase
+      .from("analyses")
+      .select("*", { count: "exact", head: true })
+      .eq("user_id", user.id);
+
+    if (historyCount && historyCount >= 10) {
+      throw new Error(
+        "History limit reached: You have 10 analyses stored. Please delete old analyses from the History page before creating new ones.",
+      );
+    }
+
     // Upload CV to Supabase Storage
     const { fileUrl } = await uploadCV(cvFile, user.id);
 
@@ -95,6 +123,24 @@ export async function analyzeCV(formData: FormData) {
 
     if (dbError) {
       throw new Error(`Failed to save analysis: ${dbError.message}`);
+    }
+
+    // Update usage log
+    if (usageLog) {
+      await supabase
+        .from("usage_logs")
+        .update({
+          analysis_count: currentCount + 1,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("user_id", user.id)
+        .eq("date", today);
+    } else {
+      await supabase.from("usage_logs").insert({
+        user_id: user.id,
+        analysis_count: 1,
+        date: today,
+      });
     }
 
     revalidatePath("/analyses");

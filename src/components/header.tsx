@@ -3,7 +3,7 @@
 import React from "react";
 import Link from "next/link";
 import toast from "react-hot-toast";
-import { Brain, LogOut, User, FileText, History } from "lucide-react";
+import { Brain, LogOut, User, FileText, History, BookOpen } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 
 export function Header() {
@@ -42,6 +42,13 @@ export function Header() {
                 >
                   <History className="h-4 w-4" />
                   <span>History</span>
+                </Link>
+                <Link
+                  href="/docs"
+                  className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-foreground dark:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-all"
+                >
+                  <BookOpen className="h-4 w-4" />
+                  <span>Docs</span>
                 </Link>
                 <button
                   onClick={async () => {
