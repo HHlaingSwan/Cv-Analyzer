@@ -1,14 +1,7 @@
 "use client";
 
 import React from "react";
-import {
-  Upload,
-  FileText,
-  Brain,
-  CheckCircle2,
-  ArrowRight,
-  Sparkles,
-} from "lucide-react";
+import { Upload, FileText, Brain, CheckCircle2 } from "lucide-react";
 
 const steps = [
   {
@@ -16,66 +9,55 @@ const steps = [
     title: "Upload CV",
     description:
       "Drag & drop or select your CV file. We support PDF, DOCX, and TXT formats.",
-    color: "bg-blue-500",
-    gradient: "from-blue-500 to-cyan-500",
   },
   {
     icon: <FileText className="h-6 w-6" />,
     title: "Add Job Details",
     description:
       "Enter the job title, position, description, and key responsibilities for comparison.",
-    color: "bg-purple-500",
-    gradient: "from-purple-500 to-pink-500",
   },
   {
     icon: <Brain className="h-6 w-6" />,
     title: "AI Analysis",
     description:
       "Our AI automatically compares your CV against the job requirements and generates insights.",
-    color: "bg-orange-500",
-    gradient: "from-orange-500 to-red-500",
   },
   {
     icon: <CheckCircle2 className="h-6 w-6" />,
     title: "Get Feedback",
     description:
       "Receive a structured report with actionable insights, skill gaps, and optimization tips.",
-    color: "bg-green-500",
-    gradient: "from-green-500 to-emerald-500",
   },
 ];
 
 export function HowItWorks() {
   return (
-    <section className="py-24 bg-slate-50 dark:bg-slate-900/50">
+    <section className="py-24 bg-slate-50 dark:bg-slate-900/30">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
         <div className="text-center mb-16 space-y-4">
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 dark:bg-primary/20 border border-primary/20 text-primary text-sm font-semibold">
-            <Sparkles className="h-4 w-4" />
-            Simple Process
-          </div>
-          <h2 className="text-4xl sm:text-5xl font-bold text-foreground dark:text-white">
-            How It Works
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-foreground dark:text-white">
+            How It
+            <span className="bg-linear-to-r from-primary to-blue-600 bg-clip-text text-transparent">
+              {" "}
+              Works
+            </span>
           </h2>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Get started in minutes with our simple 4-step process
+            Get started in minutes with our simple 4-step process.
           </p>
         </div>
 
         {/* Steps */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-          {steps.map((step, index) => (
-            <StepCard key={index} {...step} index={index} />
-          ))}
-        </div>
+        <div className="relative">
+          {/* Connecting Line (Desktop) */}
+          <div className="hidden lg:block absolute top-24 left-0 right-0 h-0.5 bg-linear-to-r from-transparent via-slate-300 dark:via-slate-700 to-transparent"></div>
 
-        {/* CTA */}
-        <div className="mt-16 text-center">
-          <button className="inline-flex items-center gap-2 bg-primary hover:bg-primary/90 text-primary-foreground h-12 px-8 rounded-xl font-semibold transition-all hover:scale-[1.02] active:scale-[0.98] shadow-lg shadow-primary/25">
-            Get Started Free
-            <ArrowRight className="h-4 w-4" />
-          </button>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+            {steps.map((step, index) => (
+              <StepCard key={index} {...step} index={index} />
+            ))}
+          </div>
         </div>
       </div>
     </section>
@@ -86,47 +68,29 @@ function StepCard({
   icon,
   title,
   description,
-  color,
-  gradient,
   index,
 }: {
   icon: React.ReactNode;
   title: string;
   description: string;
-  color: string;
-  gradient: string;
   index: number;
 }) {
   return (
-    <div className="relative group">
-      {/* Connector Line */}
-      {index < 3 && (
-        <div className="hidden lg:block absolute top-8 left-full w-full h-0.5 bg-linear-to-r from-slate-200 to-transparent dark:from-slate-700 dark:to-transparent" />
-      )}
+    <div className="relative">
+      {/* Step Number */}
+      <div className="absolute -top-4 -left-4 h-10 w-10 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-bold text-lg shadow-lg z-10">
+        {index + 1}
+      </div>
 
       {/* Card */}
-      <div className="relative bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 hover:shadow-xl hover:shadow-slate-950/10 dark:hover:shadow-slate-950/30 transition-all duration-300 hover:-translate-y-1">
-        {/* Step Number Badge */}
-        <div className="absolute -top-3 -left-3 h-8 w-8 rounded-full bg-linear-to-br from-primary to-blue-600 flex items-center justify-center text-white text-sm font-bold shadow-lg">
-          {index + 1}
-        </div>
-
-        {/* Icon */}
-        <div
-          className={`h-12 w-12 rounded-xl ${color} flex items-center justify-center text-white mb-4 group-hover:scale-110 transition-transform duration-300`}
-        >
+      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 pt-8 h-full hover:shadow-xl hover:shadow-slate-950/5 dark:hover:shadow-slate-950/20 transition-all duration-300">
+        <div className="h-14 w-14 rounded-xl bg-primary/10 dark:bg-primary/20 flex items-center justify-center text-primary mb-4">
           {icon}
         </div>
-
-        {/* Title */}
-        <h3 className="text-lg font-bold text-foreground dark:text-white mb-2">
+        <h3 className="text-xl font-semibold text-foreground dark:text-white mb-3">
           {title}
         </h3>
-
-        {/* Description */}
-        <p className="text-sm text-muted-foreground leading-relaxed">
-          {description}
-        </p>
+        <p className="text-muted-foreground leading-relaxed">{description}</p>
       </div>
     </div>
   );

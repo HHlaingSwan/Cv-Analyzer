@@ -6,10 +6,7 @@ import {
   CV_ANALYSIS_USER_PROMPT,
 } from "@/lib/ai/prompts";
 import { analyzeCVWithOpenRouter, AnalysisResult } from "@/lib/ai/openrouter";
-import {
-  extractTextFromPdf,
-  convertPdfToImageBuffer,
-} from "@/lib/pdf-to-image";
+import { extractTextFromPdf } from "@/lib/pdf-text-extraction";
 import { revalidatePath } from "next/cache";
 
 export async function uploadCV(file: File, userId: string) {
@@ -20,7 +17,7 @@ export async function uploadCV(file: File, userId: string) {
     const fileName = `${userId}/${Date.now()}.${fileExt}`;
 
     const { data, error } = await supabase.storage
-      .from("cvs")
+      .from("cv-previews")
       .upload(fileName, file);
 
     if (error) {
@@ -29,7 +26,7 @@ export async function uploadCV(file: File, userId: string) {
 
     const {
       data: { publicUrl },
-    } = supabase.storage.from("cvs").getPublicUrl(fileName);
+    } = supabase.storage.from("cv-previews").getPublicUrl(fileName);
 
     return { fileUrl: publicUrl, path: data.path };
   } catch (error) {
@@ -58,43 +55,22 @@ export async function analyzeCV(formData: FormData) {
       throw new Error("Missing required fields");
     }
 
+    console.log("📤 Uploading CV to Supabase Storage...");
     // Upload CV to Supabase Storage
     const { fileUrl, path } = await uploadCV(cvFile, user.id);
+    console.log("✅ CV uploaded successfully");
 
+    console.log("📄 Converting PDF to array buffer...");
     // Convert PDF to array buffer
     const arrayBuffer = await cvFile.arrayBuffer();
+    console.log("✅ PDF converted to array buffer");
 
+    console.log("🔍 Extracting text from PDF...");
     // Extract text from PDF
     const cvText = await extractTextFromPdf(arrayBuffer);
+    console.log("✅ Text extracted from PDF");
 
-    // Convert PDF to image for display
-    const imageBuffer = await convertPdfToImageBuffer(arrayBuffer);
-    let imageUrl = "";
-
-    console.log("imageBuffer", imageBuffer);
-
-    if (imageBuffer) {
-      const imageFileName = `${user.id}/${Date.now()}_preview.png`;
-
-      console.log("Image Buffer Working...");
-
-      const { data: imageData, error: imageError } = await supabase.storage
-        .from("cv-previews")
-        .upload(imageFileName, imageBuffer, {
-          contentType: "image/png",
-        });
-
-      console.log("imageData", imageData);
-      console.log("imageError", imageError);
-
-      if (!imageError && imageData) {
-        const {
-          data: { publicUrl },
-        } = supabase.storage.from("cv-previews").getPublicUrl(imageFileName);
-        imageUrl = publicUrl;
-      }
-    }
-
+    console.log("🤖 Analyzing CV with OpenRouter AI...");
     // Analyze CV with OpenRouter
     const userPrompt = CV_ANALYSIS_USER_PROMPT(
       jobTitle,
@@ -107,7 +83,9 @@ export async function analyzeCV(formData: FormData) {
       CV_ANALYSIS_SYSTEM_PROMPT,
       userPrompt,
     );
+    console.log("✅ AI analysis complete");
 
+    console.log("💾 Saving analysis to database...");
     // Save analysis to database
     const { data: analysis, error: dbError } = await supabase
       .from("analyses")
@@ -117,7 +95,7 @@ export async function analyzeCV(formData: FormData) {
         job_description: jobDescription,
         responsibilities: jobDescription,
         cv_file_url: fileUrl,
-        cv_image_url: imageUrl,
+        cv_image_url: "",
         analysis_result: analysisResult,
         overall_score: analysisResult.overall_score,
       })
@@ -127,6 +105,9 @@ export async function analyzeCV(formData: FormData) {
     if (dbError) {
       throw new Error(`Failed to save analysis: ${dbError.message}`);
     }
+
+    console.log("✅ Analysis saved to database");
+    console.log("🎉 CV analysis complete!");
 
     revalidatePath("/analyses");
     revalidatePath(`/analyze/${analysis.id}`);

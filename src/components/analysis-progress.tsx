@@ -1,13 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import {
-  Loader2,
-  CheckCircle2,
-  Upload,
-  FileText,
-  Sparkles,
-} from "lucide-react";
+import { Loader2, CheckCircle2, Upload, Sparkles } from "lucide-react";
 
 interface AnalysisProgressProps {
   onComplete: (analysisId: string) => void;
@@ -16,9 +10,8 @@ interface AnalysisProgressProps {
 
 const steps = [
   { id: 1, label: "Uploading CV...", icon: Upload },
-  { id: 2, label: "Converting PDF to image...", icon: FileText },
-  { id: 3, label: "Reading and analyzing CV...", icon: Sparkles },
-  { id: 4, label: "Generating insights...", icon: CheckCircle2 },
+  { id: 2, label: "Reading and analyzing CV...", icon: Sparkles },
+  { id: 3, label: "Generating insights...", icon: CheckCircle2 },
 ];
 
 export function AnalysisProgress({

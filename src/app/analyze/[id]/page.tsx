@@ -18,9 +18,14 @@ import {
   Menu,
   Save,
   X,
+  FileText,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import { useAuth } from "@/hooks/use-auth";
+import { Document, Page, pdfjs } from "react-pdf";
+
+// Set up PDF.js worker
+pdfjs.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
 
 export default function AnalysisDetailPage() {
   const params = useParams();
@@ -30,6 +35,8 @@ export default function AnalysisDetailPage() {
   const [loading, setLoading] = useState(true);
   const [result, setResult] = useState<AnalysisResult | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [numPages, setNumPages] = useState<number>(0);
+  const [pdfError, setPdfError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
@@ -82,6 +89,16 @@ export default function AnalysisDetailPage() {
         error instanceof Error ? error.message : "Failed to delete analysis",
       );
     }
+  };
+
+  const onDocumentLoadSuccess = ({ numPages }: { numPages: number }) => {
+    setNumPages(numPages);
+    setPdfError(null);
+  };
+
+  const onDocumentLoadError = (error: Error) => {
+    console.error("PDF load error:", error);
+    setPdfError("Failed to load PDF preview");
   };
 
   const getScoreColor = (score: number) => {
@@ -158,16 +175,41 @@ export default function AnalysisDetailPage() {
       {/* Main Content */}
       <div className=" max-w-7xl  mx-auto px-4 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Left: CV Image */}
+          {/* Left: CV Download */}
           <div className="lg:sticky  lg:top-0 lg:self-start">
             <div className="bg-card rounded-xl border border-border overflow-hidden">
+              <div className="p-4 border-b border-border">
+                <h3 className="font-semibold text-foreground dark:text-white">
+                  Your CV
+                </h3>
+              </div>
               <div className="p-4">
-                {analysis.cv_image_url ? (
-                  <img
-                    src={analysis.cv_image_url}
-                    alt="CV Preview"
-                    className="w-full h-auto rounded-lg"
-                  />
+                {analysis.cv_file_url ? (
+                  <div className="w-full rounded-lg overflow-hidden border border-border">
+                    {pdfError ? (
+                      <div className="aspect-8.5/11 bg-muted rounded-lg flex items-center justify-center">
+                        <p className="text-muted-foreground">{pdfError}</p>
+                      </div>
+                    ) : (
+                      <Document
+                        file={analysis.cv_file_url}
+                        onLoadSuccess={onDocumentLoadSuccess}
+                        onLoadError={onDocumentLoadError}
+                        loading={
+                          <div className="aspect-8.5/11 bg-muted rounded-lg flex items-center justify-center">
+                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+                          </div>
+                        }
+                      >
+                        <Page
+                          pageNumber={1}
+                          width={600}
+                          renderTextLayer={false}
+                          renderAnnotationLayer={false}
+                        />
+                      </Document>
+                    )}
+                  </div>
                 ) : (
                   <div className="aspect-8.5/11 bg-muted rounded-lg flex items-center justify-center">
                     <p className="text-muted-foreground">
