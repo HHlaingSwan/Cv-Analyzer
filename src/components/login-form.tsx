@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import { useAuth } from "@/hooks/use-auth";
 import { OtpVerification } from "@/components/otp-verification";
@@ -14,9 +15,12 @@ import {
   Sparkles,
   Eye,
   EyeOff,
+  Home,
+  LogOut,
 } from "lucide-react";
 
 export function LoginForm() {
+  const router = useRouter();
   const [mode, setMode] = React.useState<"login" | "signup" | "magiclink">(
     "login",
   );
@@ -30,6 +34,8 @@ export function LoginForm() {
     signInWithMagicLink,
     verifyOtp,
     isLoading,
+    isAuthenticated,
+    logout,
   } = useAuth();
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
@@ -75,6 +81,75 @@ export function LoginForm() {
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "OAuth failed");
     }
+  }
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+      toast.success("Logged out successfully");
+      window.location.href = "/";
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Logout failed");
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen w-full bg-linear-to-br from-slate-50 via-white to-slate-100 dark:from-slate-950 dark:via-slate-900 dark:to-slate-800 flex items-center justify-center">
+        <Loader2 className="h-12 w-12 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  if (isAuthenticated) {
+    return (
+      <div className="min-h-screen w-full bg-linear-to-br from-slate-50 via-white to-slate-100 dark:from-slate-950 dark:via-slate-900 dark:to-slate-800 relative overflow-hidden">
+        {/* Background Pattern */}
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,#00000008_1px,transparent_1px),linear-gradient(to_bottom,#00000008_1px,transparent_1px)] bg-size-[4rem_4rem] mask-[linear-gradient(to_right,#00000060,transparent)]"></div>
+
+        {/* Floating Gradient Orbs */}
+        <div className="absolute top-1/4 -left-32 w-96 h-96 bg-primary/20 rounded-full blur-[128px] animate-pulse"></div>
+        <div
+          className="absolute bottom-1/4 -right-32 w-96 h-96 bg-blue-500/20 rounded-full blur-[128px] animate-pulse"
+          style={{ animationDelay: "1s" }}
+        ></div>
+
+        <div className="relative z-10 min-h-screen flex items-center justify-center p-4">
+          <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border border-slate-200/50 dark:border-slate-700/50 rounded-3xl p-8 sm:p-10 shadow-2xl shadow-slate-950/10 dark:shadow-slate-950/40 max-w-md w-full text-center">
+            <div className="space-y-6">
+              <div className="h-16 w-16 rounded-full bg-green-500/10 flex items-center justify-center mx-auto">
+                <Sparkles className="h-8 w-8 text-green-500" />
+              </div>
+              <div className="space-y-2">
+                <h2 className="text-2xl font-bold text-foreground dark:text-white">
+                  Already Logged In
+                </h2>
+                <p className="text-muted-foreground">
+                  You are already authenticated. You can go to the home page or
+                  logout.
+                </p>
+              </div>
+              <div className="space-y-3">
+                <button
+                  onClick={() => router.push("/")}
+                  className="w-full bg-primary hover:bg-primary/90 text-primary-foreground h-12 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all hover:scale-[1.02] active:scale-[0.98]"
+                >
+                  <Home className="h-4 w-4" />
+                  Go to Home
+                </button>
+                <button
+                  onClick={handleLogout}
+                  className="w-full bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-foreground dark:text-white h-12 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all hover:scale-[1.02] active:scale-[0.98]"
+                >
+                  <LogOut className="h-4 w-4" />
+                  Logout
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   return (
