@@ -55,22 +55,15 @@ export async function analyzeCV(formData: FormData) {
       throw new Error("Missing required fields");
     }
 
-    console.log("📤 Uploading CV to Supabase Storage...");
     // Upload CV to Supabase Storage
-    const { fileUrl, path } = await uploadCV(cvFile, user.id);
-    console.log("✅ CV uploaded successfully");
+    const { fileUrl } = await uploadCV(cvFile, user.id);
 
-    console.log("📄 Converting PDF to array buffer...");
     // Convert PDF to array buffer
     const arrayBuffer = await cvFile.arrayBuffer();
-    console.log("✅ PDF converted to array buffer");
 
-    console.log("🔍 Extracting text from PDF...");
     // Extract text from PDF
     const cvText = await extractTextFromPdf(arrayBuffer);
-    console.log("✅ Text extracted from PDF");
 
-    console.log("🤖 Analyzing CV with OpenRouter AI...");
     // Analyze CV with OpenRouter
     const userPrompt = CV_ANALYSIS_USER_PROMPT(
       jobTitle,
@@ -83,9 +76,7 @@ export async function analyzeCV(formData: FormData) {
       CV_ANALYSIS_SYSTEM_PROMPT,
       userPrompt,
     );
-    console.log("✅ AI analysis complete");
 
-    console.log("💾 Saving analysis to database...");
     // Save analysis to database
     const { data: analysis, error: dbError } = await supabase
       .from("analyses")
@@ -105,9 +96,6 @@ export async function analyzeCV(formData: FormData) {
     if (dbError) {
       throw new Error(`Failed to save analysis: ${dbError.message}`);
     }
-
-    console.log("✅ Analysis saved to database");
-    console.log("🎉 CV analysis complete!");
 
     revalidatePath("/analyses");
     revalidatePath(`/analyze/${analysis.id}`);
