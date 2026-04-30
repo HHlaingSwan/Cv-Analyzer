@@ -3,7 +3,7 @@
 import React from "react";
 import Link from "next/link";
 import toast from "react-hot-toast";
-import { Brain, LogOut, User } from "lucide-react";
+import { Brain, LogOut, User, FileText, History } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 
 export function Header() {
@@ -28,24 +28,42 @@ export function Header() {
             {isLoading ? (
               <div className="h-8 w-8 rounded-full bg-slate-200 dark:bg-slate-700 animate-pulse" />
             ) : isAuthenticated ? (
-              <button
-                onClick={async () => {
-                  try {
-                    await logout();
-                    toast.success("Logged out successfully");
-                    window.location.href = "/";
-                  } catch (error) {
-                    toast.error(
-                      error instanceof Error ? error.message : "Logout failed",
-                    );
-                  }
-                }}
-                className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-foreground dark:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-all"
-              >
-                <User className="h-4 w-4" />
-                <span>Logout</span>
-                <LogOut className="h-4 w-4" />
-              </button>
+              <>
+                <Link
+                  href="/analyze"
+                  className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-foreground dark:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-all"
+                >
+                  <FileText className="h-4 w-4" />
+                  <span>Analyze CV</span>
+                </Link>
+                <Link
+                  href="/analyses"
+                  className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-foreground dark:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-all"
+                >
+                  <History className="h-4 w-4" />
+                  <span>History</span>
+                </Link>
+                <button
+                  onClick={async () => {
+                    try {
+                      await logout();
+                      toast.success("Logged out successfully");
+                      window.location.href = "/";
+                    } catch (error) {
+                      toast.error(
+                        error instanceof Error
+                          ? error.message
+                          : "Logout failed",
+                      );
+                    }
+                  }}
+                  className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-foreground dark:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-all"
+                >
+                  <User className="h-4 w-4" />
+                  <span>Logout</span>
+                  <LogOut className="h-4 w-4" />
+                </button>
+              </>
             ) : (
               <Link
                 href="/login"

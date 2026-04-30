@@ -102,7 +102,7 @@ export function HeroSection({ userType }: HeroSectionProps) {
             }`}
           >
             <Link
-              href="/login"
+              href="/analyze"
               className="w-full sm:w-auto bg-primary hover:bg-primary/90 text-primary-foreground h-12 px-8 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all hover:scale-[1.02] active:scale-[0.98] shadow-lg shadow-primary/25"
             >
               {current.primaryCTA}
