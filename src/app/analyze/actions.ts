@@ -9,6 +9,55 @@ import { analyzeCVWithOpenRouter, AnalysisResult } from "@/lib/ai/openrouter";
 import { extractTextFromPdf } from "@/lib/pdf-text-extraction";
 import { revalidatePath } from "next/cache";
 
+function toUserFriendlyAnalyzeError(error: unknown): Error {
+  const message =
+    error instanceof Error ? error.message : "An unexpected error occurred.";
+  const normalized = message.toLowerCase();
+
+  if (normalized.includes("user not authenticated")) {
+    return new Error("Your session has expired. Please log in again.");
+  }
+
+  if (normalized.includes("missing required fields")) {
+    return new Error("Please provide job title, job description, and a PDF CV.");
+  }
+
+  if (
+    normalized.includes("daily limit reached") ||
+    normalized.includes("history limit reached")
+  ) {
+    return new Error(message);
+  }
+
+  if (
+    normalized.includes("text-based cv pdf") ||
+    normalized.includes("no extractable text")
+  ) {
+    return new Error(message);
+  }
+
+  if (normalized.includes("ai analysis is temporarily unavailable")) {
+    return new Error(message);
+  }
+
+  if (normalized.includes("openrouter")) {
+    return new Error(
+      "AI analysis is currently unavailable. Please try again shortly.",
+    );
+  }
+
+  if (
+    normalized.includes("failed to upload cv") ||
+    normalized.includes("failed to save analysis")
+  ) {
+    return new Error(
+      "We could not save your analysis right now. Please try again.",
+    );
+  }
+
+  return new Error("Analysis failed. Please try again.");
+}
+
 export async function uploadCV(file: File, userId: string) {
   const supabase = await createClient();
 
@@ -64,6 +113,10 @@ export async function analyzeCV(formData: FormData) {
       .eq("date", today)
       .single();
 
+    if (usageError && usageError.code !== "PGRST116") {
+      throw new Error(`Failed to check daily usage: ${usageError.message}`);
+    }
+
     const currentCount = usageLog?.analysis_count || 0;
     if (currentCount >= 5) {
       throw new Error(
@@ -76,6 +129,10 @@ export async function analyzeCV(formData: FormData) {
       .from("analyses")
       .select("*", { count: "exact", head: true })
       .eq("user_id", user.id);
+
+    if (countError) {
+      throw new Error(`Failed to check analysis history: ${countError.message}`);
+    }
 
     if (historyCount && historyCount >= 10) {
       throw new Error(
@@ -149,7 +206,7 @@ export async function analyzeCV(formData: FormData) {
     return { success: true, analysisId: analysis.id };
   } catch (error) {
     console.error("Error analyzing CV:", error);
-    throw error;
+    throw toUserFriendlyAnalyzeError(error);
   }
 }
 

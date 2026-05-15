@@ -6,14 +6,16 @@ export async function extractTextFromPdf(
   try {
     const result = await extractText(pdfBuffer);
     const text = result.text.join("\n");
-    
+
     if (!text || !text.trim()) {
-      return "No text content could be extracted from PDF";
+      throw new Error("PDF contains no extractable text");
     }
-    
+
     return text;
   } catch (error) {
     console.error("[PDF] Error extracting text:", error);
-    return "Text extraction failed";
+    throw new Error(
+      "We could not read text from this PDF. Please upload a text-based CV PDF (not a scanned image).",
+    );
   }
 }

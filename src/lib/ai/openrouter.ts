@@ -43,7 +43,7 @@ export async function analyzeCVWithOpenRouter(
           "X-Title": "CV Analyzer",
         },
         body: JSON.stringify({
-          model: "inclusionai/ling-2.6-1t:free",
+          model: process.env.AI_MODEL_KEY,
           messages: [
             {
               role: "system",
@@ -61,8 +61,36 @@ export async function analyzeCVWithOpenRouter(
     );
 
     if (!response.ok) {
-      const error = await response.text();
-      throw new Error(`OpenRouter API error: ${response.status} - ${error}`);
+      const rawError = await response.text();
+      let providerMessage = "";
+
+      try {
+        const parsed = JSON.parse(rawError) as {
+          error?: { message?: string; code?: number | string };
+        };
+        providerMessage = parsed.error?.message ?? "";
+      } catch {
+        // keep providerMessage empty when response isn't valid JSON
+      }
+
+      const normalizedMessage = providerMessage.toLowerCase();
+      const isModelNoLongerFree =
+        response.status === 404 &&
+        normalizedMessage.includes("no longer available as a free model");
+
+      if (isModelNoLongerFree) {
+        throw new Error(
+          "AI analysis is temporarily unavailable because the selected model is no longer free on OpenRouter. Please ask support to switch to an available model and try again.",
+        );
+      }
+
+      const fallbackMessage =
+        providerMessage ||
+        "The AI service returned an unexpected response. Please try again in a moment.";
+
+      throw new Error(
+        `OpenRouter request failed (${response.status}): ${fallbackMessage}`,
+      );
     }
 
     const data = await response.json();
